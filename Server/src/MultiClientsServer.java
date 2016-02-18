@@ -9,8 +9,14 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 
+/**
+ * Server
+ *
+ */
 public class MultiClientsServer {
 
+	private final int port = 10008;
+	
 	ServerSocket myServerSocket;
 	boolean ServerOn = true;
 
@@ -20,7 +26,7 @@ public class MultiClientsServer {
 	{ 
 		try 
 		{ 
-			myServerSocket = new ServerSocket(10008); 
+			myServerSocket = new ServerSocket(port); 
 		} 
 		catch(IOException ioe) 
 		{ 

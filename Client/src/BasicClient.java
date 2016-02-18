@@ -1,10 +1,16 @@
 import java.io.*;
 import java.net.*;
 
+/**
+ * Connect to the server
+ *
+ */
 public class BasicClient {
 
 	private SimpleUser user;
-	private String serverHostname = new String ("127.0.0.1");
+	private final String serverHostname = new String ("127.0.0.1");
+	private final int serverPort = 10008;
+	
 	Socket echoSocket;
 	PrintWriter out;
 	BufferedReader in;	
@@ -20,7 +26,7 @@ public class BasicClient {
 
 	public void initializeBuffer(){
 		try {
-			echoSocket = new Socket(serverHostname, 10008);
+			echoSocket = new Socket(serverHostname, serverPort);
 			out = new PrintWriter(echoSocket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(
 					echoSocket.getInputStream()));
@@ -40,7 +46,7 @@ public class BasicClient {
 
 		client.setUser(new SimpleUser(args[0]));
 
-		System.out.println ("Attemping to connect to host " + client.serverHostname + " on port 10008.");
+		System.out.println ("Attemping to connect to host " + client.serverHostname + " on port "+ client.serverPort + " .");
 
 		String userInput;
 		

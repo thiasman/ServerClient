@@ -1,3 +1,9 @@
+
+/**
+ * Contains info about the client
+ *
+ */
+
 public class SimpleUser {
 	
 	private String name;
