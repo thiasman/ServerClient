@@ -2,6 +2,8 @@ package main;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import messages.BasicMessage;
 /**
@@ -57,30 +59,65 @@ public class BasicClient {
 
 		client.logon();
 		
-		System.out.println ("Type Message (\"Bye.\" to quit)");
+		ThreadListener cliThread = client.new ThreadListener();
+		cliThread.start(); 
 		
-		BasicMessage time = new BasicMessage();
-		client.outputStream.writeObject(time);
-		
-		String userInput = "test";
-		
-		while (userInput != null) 
-		{
-//			client.out.println(userInput);
-//
-//			// end loop
-//			if (userInput.equals("Bye."))
-//				break;
-//
-//			System.out.println("echo: " + client.in.readLine());
-		}
-		
+		System.out.println ("Hello "+ client.getUser().getName());
 
-		
+		String userInput = null;
+		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+
+		DisplayMenu();
+		while ((userInput = stdIn.readLine()) != null) 
+		{
+			switch(userInput){
+				case "A":
+					BasicMessage time = new BasicMessage();
+					client.outputStream.writeObject(time);
+					break;
+			}
+			DisplayMenu();
+		}
 		
 		client.outputStream.close();
 		client.inputStream.close();
 		client.echoSocket.close();
+	}
+
+	private static void DisplayMenu() {
+		System.out.println ("MENU :");
+		System.out.println ("Press A to ask for the time");
+	}
+	
+	class ThreadListener extends Thread 
+	{
+		public void run() 
+		{
+			try {
+				BasicMessage message = (BasicMessage) inputStream.readObject();
+				
+				switch(message.getMessageType()){
+				case LOGON:
+					System.out.println("You shouldn't receive this message");
+					break;
+				case TIME:
+					System.out.println(message.getComment());
+					break;
+				case POSITION:
+					break;
+				case BASIC_MESSAGE:
+					break;
+				case QUIT:
+					System.out.print("Server down: "); 
+					break;
+				}
+				
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public SimpleUser getUser() {

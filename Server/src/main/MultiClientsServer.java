@@ -96,6 +96,9 @@ public class MultiClientsServer {
 		Socket myClientSocket;
 		boolean m_bRunThread = true; 
 
+		ObjectInputStream serverInputStream = null;
+        ObjectOutputStream serverOutputStream = null;
+		
 		private int clientNumber =++nbClients;
 		private String clientName;
 
@@ -111,28 +114,13 @@ public class MultiClientsServer {
 
 		public void run() 
 		{            
-			// Obtain the input stream and the output stream for the socket 
-			// A good practice is to encapsulate them with a BufferedReader 
-			// and a PrintWriter as shown below. 
-//			BufferedReader in = null; 
-//			PrintWriter out = null; 
-//			ObjectInputStream inStream = null;
-			
-
-	         ObjectInputStream serverInputStream = null;
-
-	         ObjectOutputStream serverOutputStream = null;
-			
+		
 			
 			// Print out details of this connection 
 			System.out.println("Accepted client "+ clientNumber +" with address - " + myClientSocket.getInetAddress().getHostName()); 
 
 			try 
 			{                                
-//				in = new BufferedReader(new InputStreamReader(myClientSocket.getInputStream())); 
-//				out = new PrintWriter(new OutputStreamWriter(myClientSocket.getOutputStream()));
-//				inStream = new ObjectInputStream(myClientSocket.getInputStream());
-				
 				serverInputStream = new ObjectInputStream(myClientSocket.getInputStream());
 				serverOutputStream = new ObjectOutputStream(myClientSocket.getOutputStream());
 				
@@ -144,51 +132,36 @@ public class MultiClientsServer {
 				// Run in a loop until m_bRunThread is set to false 
 				while(m_bRunThread) 
 				{                    
-					// read incoming stream 
-					//String clientCommand = in.readLine(); 
-					//System.out.println("Client "+ clientName +" says :" + clientCommand);
-
 					BasicMessage message = (BasicMessage) serverInputStream.readObject();
 					
-//					if(!ServerOn) 
-//					{ 
-//						// Special command. Quit this thread 
-//						System.out.print("Server has already stopped"); 
-//						out.println("Server has already stopped"); 
-//						out.flush(); 
-//						m_bRunThread = false;   
-//
-//					} 
+					if(!ServerOn) 
+					{ 
+						// Special command. Quit this thread 
+						System.out.print("Server has already stopped"); 
+						serverOutputStream.writeObject(new BasicMessage(BasicMessage.MessageTypes.BASIC_MESSAGE, "Server is down"));
+						serverOutputStream.flush(); 
+						m_bRunThread = false;   
+
+					}
 					switch(message.getMessageType()){
+					case LOGON:
+						clientName = message.getComment();
+						break;
 					case TIME:
+						System.out.println("Client " + clientName + " asks for the time");
 						Calendar now = Calendar.getInstance();
 						SimpleDateFormat formatter = new SimpleDateFormat("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-						System.out.println("It is now : " + formatter.format(now.getTime()));
-						//out.println("It is now : " + formatter.format(now.getTime())); 
+						serverOutputStream.writeObject(new BasicMessage(BasicMessage.MessageTypes.TIME,"It is now : " + formatter.format(now.getTime()))); 
 						break;
 					case POSITION:
 						break;
 					case BASIC_MESSAGE:
 						break;
 					case QUIT:
+						m_bRunThread = false;   
+						System.out.print("Stopping client thread for client : "); 
 						break;
 					}
-					
-					
-//					if(clientCommand.equalsIgnoreCase("quit")) { 
-//						// Special command. Quit this thread 
-//						m_bRunThread = false;   
-//						System.out.print("Stopping client thread for client : "); 
-//					} else if(clientCommand.equalsIgnoreCase("end")) { 
-//						// Special command. Quit this thread and Stop the Server
-//						m_bRunThread = false;   
-//						System.out.print("Stopping client thread for client : "); 
-//						ServerOn = false;
-//					} else {
-//						// Process it 
-//						out.println("Server Says : " + clientCommand); 
-//						out.flush(); 
-//					}
 				} 
 			} 
 			catch(Exception e) 
@@ -202,8 +175,6 @@ public class MultiClientsServer {
 				{        
 					serverOutputStream.close();
 					serverInputStream.close();
-//					in.close(); 
-//					out.close(); 
 					myClientSocket.close(); 
 					System.out.println("...Stopped"); 
 				} 
