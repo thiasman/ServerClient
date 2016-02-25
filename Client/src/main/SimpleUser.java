@@ -1,3 +1,4 @@
+package main;
 
 /**
  * Contains info about the client
