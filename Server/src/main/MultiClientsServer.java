@@ -2,12 +2,16 @@ package main;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import messages.BasicMessage;
 
 
 /**
@@ -22,7 +26,7 @@ public class MultiClientsServer {
 	boolean ServerOn = true;
 
 	protected int nbClients =0;
-
+	
 	public MultiClientsServer() 
 	{ 
 		try 
@@ -110,19 +114,30 @@ public class MultiClientsServer {
 			// Obtain the input stream and the output stream for the socket 
 			// A good practice is to encapsulate them with a BufferedReader 
 			// and a PrintWriter as shown below. 
-			BufferedReader in = null; 
-			PrintWriter out = null; 
+//			BufferedReader in = null; 
+//			PrintWriter out = null; 
+//			ObjectInputStream inStream = null;
+			
 
+	         ObjectInputStream serverInputStream = null;
+
+	         ObjectOutputStream serverOutputStream = null;
+			
+			
 			// Print out details of this connection 
 			System.out.println("Accepted client "+ clientNumber +" with address - " + myClientSocket.getInetAddress().getHostName()); 
 
 			try 
 			{                                
-				in = new BufferedReader(new InputStreamReader(myClientSocket.getInputStream())); 
-				out = new PrintWriter(new OutputStreamWriter(myClientSocket.getOutputStream())); 
-
+//				in = new BufferedReader(new InputStreamReader(myClientSocket.getInputStream())); 
+//				out = new PrintWriter(new OutputStreamWriter(myClientSocket.getOutputStream()));
+//				inStream = new ObjectInputStream(myClientSocket.getInputStream());
+				
+				serverInputStream = new ObjectInputStream(myClientSocket.getInputStream());
+				serverOutputStream = new ObjectOutputStream(myClientSocket.getOutputStream());
+				
 				//Read the name which is sent automatically
-				clientName = in.readLine(); 
+				//clientName = in.readLine(); 
 
 				// At this point, we can read for input and reply with appropriate output. 
 
@@ -130,33 +145,50 @@ public class MultiClientsServer {
 				while(m_bRunThread) 
 				{                    
 					// read incoming stream 
-					String clientCommand = in.readLine(); 
-					System.out.println("Client "+ clientName +" says :" + clientCommand);
+					//String clientCommand = in.readLine(); 
+					//System.out.println("Client "+ clientName +" says :" + clientCommand);
 
-					if(!ServerOn) 
-					{ 
-						// Special command. Quit this thread 
-						System.out.print("Server has already stopped"); 
-						out.println("Server has already stopped"); 
-						out.flush(); 
-						m_bRunThread = false;   
-
-					} 
-
-					if(clientCommand.equalsIgnoreCase("quit")) { 
-						// Special command. Quit this thread 
-						m_bRunThread = false;   
-						System.out.print("Stopping client thread for client : "); 
-					} else if(clientCommand.equalsIgnoreCase("end")) { 
-						// Special command. Quit this thread and Stop the Server
-						m_bRunThread = false;   
-						System.out.print("Stopping client thread for client : "); 
-						ServerOn = false;
-					} else {
-						// Process it 
-						out.println("Server Says : " + clientCommand); 
-						out.flush(); 
+					BasicMessage message = (BasicMessage) serverInputStream.readObject();
+					
+//					if(!ServerOn) 
+//					{ 
+//						// Special command. Quit this thread 
+//						System.out.print("Server has already stopped"); 
+//						out.println("Server has already stopped"); 
+//						out.flush(); 
+//						m_bRunThread = false;   
+//
+//					} 
+					switch(message.getMessageType()){
+					case TIME:
+						Calendar now = Calendar.getInstance();
+						SimpleDateFormat formatter = new SimpleDateFormat("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
+						System.out.println("It is now : " + formatter.format(now.getTime()));
+						//out.println("It is now : " + formatter.format(now.getTime())); 
+						break;
+					case POSITION:
+						break;
+					case BASIC_MESSAGE:
+						break;
+					case QUIT:
+						break;
 					}
+					
+					
+//					if(clientCommand.equalsIgnoreCase("quit")) { 
+//						// Special command. Quit this thread 
+//						m_bRunThread = false;   
+//						System.out.print("Stopping client thread for client : "); 
+//					} else if(clientCommand.equalsIgnoreCase("end")) { 
+//						// Special command. Quit this thread and Stop the Server
+//						m_bRunThread = false;   
+//						System.out.print("Stopping client thread for client : "); 
+//						ServerOn = false;
+//					} else {
+//						// Process it 
+//						out.println("Server Says : " + clientCommand); 
+//						out.flush(); 
+//					}
 				} 
 			} 
 			catch(Exception e) 
@@ -167,9 +199,11 @@ public class MultiClientsServer {
 			{ 
 				// Clean up 
 				try 
-				{                    
-					in.close(); 
-					out.close(); 
+				{        
+					serverOutputStream.close();
+					serverInputStream.close();
+//					in.close(); 
+//					out.close(); 
 					myClientSocket.close(); 
 					System.out.println("...Stopped"); 
 				} 

@@ -1,7 +1,9 @@
 package main;
 import java.io.*;
-import java.net.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
+import messages.BasicMessage;
 /**
  * Connect to the server
  *
@@ -13,24 +15,26 @@ public class BasicClient {
 	private final int serverPort = 10008;
 	
 	Socket echoSocket;
-	PrintWriter out;
-	BufferedReader in;	
-
-	BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-
+	ObjectOutputStream outputStream =  null;
+	ObjectInputStream inputStream =  null;
+	
 	public BasicClient() {
 	}
 
 	public void logon(){
-		out.println(getUser().getName());
+		try {
+			outputStream.writeObject(new BasicMessage(BasicMessage.MessageTypes.LOGON, getUser().getName()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void initializeBuffer(){
 		try {
 			echoSocket = new Socket(serverHostname, serverPort);
-			out = new PrintWriter(echoSocket.getOutputStream(), true);
-			in = new BufferedReader(new InputStreamReader(
-					echoSocket.getInputStream()));
+			outputStream =  new ObjectOutputStream(echoSocket.getOutputStream());
+			inputStream =  new ObjectInputStream(echoSocket.getInputStream());
+			
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host: " + serverHostname);
 			System.exit(1);
@@ -48,28 +52,34 @@ public class BasicClient {
 		client.setUser(new SimpleUser(args[0]));
 
 		System.out.println ("Attemping to connect to host " + client.serverHostname + " on port "+ client.serverPort + " .");
-
-		String userInput;
 		
 		client.initializeBuffer();
 
 		client.logon();
 		
 		System.out.println ("Type Message (\"Bye.\" to quit)");
-		while ((userInput = client.stdIn.readLine()) != null) 
+		
+		BasicMessage time = new BasicMessage();
+		client.outputStream.writeObject(time);
+		
+		String userInput = "test";
+		
+		while (userInput != null) 
 		{
-			client.out.println(userInput);
-
-			// end loop
-			if (userInput.equals("Bye."))
-				break;
-
-			System.out.println("echo: " + client.in.readLine());
+//			client.out.println(userInput);
+//
+//			// end loop
+//			if (userInput.equals("Bye."))
+//				break;
+//
+//			System.out.println("echo: " + client.in.readLine());
 		}
+		
 
-		client.out.close();
-		client.in.close();
-		client.stdIn.close();
+		
+		
+		client.outputStream.close();
+		client.inputStream.close();
 		client.echoSocket.close();
 	}
 
