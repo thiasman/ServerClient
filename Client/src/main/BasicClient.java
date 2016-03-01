@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Iterator;
 import java.util.Vector;
 
 import messages.BasicMessage;
@@ -77,8 +78,12 @@ public class BasicClient {
 		{
 			switch(userInput){
 				case "A":
-					Message time = new BasicMessage();
+					BasicMessage time = new BasicMessage();
 					client.outputStream.writeObject(time);
+					break;
+				case "B":
+					MessageUsersList list = new MessageUsersList();
+					client.outputStream.writeObject(list);
 					break;
 			}
 			DisplayMenu();
@@ -92,6 +97,7 @@ public class BasicClient {
 	private static void DisplayMenu() {
 		System.out.println ("MENU :");
 		System.out.println ("Press A to ask for the time");
+		System.out.println ("Press B for a list of users");
 	}
 	
 	class ThreadListener extends Thread 
@@ -130,7 +136,10 @@ public class BasicClient {
 	}
 
 	private void DisplayListUsers(Vector<String> clientsList) {
-		
+		Iterator<String> i = clientsList.iterator();
+	    while (i.hasNext()) {
+	      System.out.println(i.next());
+	    }
 	}
 	
 	public SimpleUser getUser() {

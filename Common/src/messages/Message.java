@@ -22,6 +22,10 @@ public abstract class Message implements Serializable{
 		//By default ask for the time
 		messageType = MessageTypes.TIME;
 	}
+	
+	public Message(MessageTypes mesType) {
+		messageType = mesType;
+	}
 
 	public Message(MessageTypes type, String comment) {
 		this.messageType = type;

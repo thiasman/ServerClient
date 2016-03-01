@@ -11,6 +11,10 @@ public class BasicMessage extends Message{
 		super();
 	}
 	
+	public BasicMessage(MessageTypes mesType) {
+		super(mesType);
+	}
+	
 	public BasicMessage(MessageTypes type, String comment) {
 		super(type, comment);
 	}

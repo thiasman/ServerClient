@@ -12,11 +12,11 @@ public class MessageUsersList extends Message {
 	Vector<String> clientsList = null;
 	
 	public MessageUsersList() {
-		super();
+		super(Message.MessageTypes.LIST_USERS);
 	}
 	
 	public MessageUsersList(MessageTypes type, String comment) {
-		super(type, comment);
+		super(Message.MessageTypes.LIST_USERS, comment);
 	}
 	
 	public Vector<String> getClientsList() {

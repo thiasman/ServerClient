@@ -10,6 +10,7 @@ import java.util.Vector;
 
 import messages.BasicMessage;
 import messages.Message;
+import messages.MessageUsersList;
 
 /**
  * Server
@@ -24,8 +25,10 @@ public class MultiClientsServer {
 
 	protected int nbClients = 0;
 	
-	//Using a vector becaus eit's synchronized
-	Vector<ClientServiceThread> clientsList = new Vector<ClientServiceThread>();
+	//Using a vector because it's synchronized
+	Vector<ClientServiceThread> clientsThreadList = new Vector<ClientServiceThread>();
+	
+	Vector<String> clientsNameList = new Vector<String>();
 	
 	public MultiClientsServer() 
 	{ 
@@ -64,7 +67,7 @@ public class MultiClientsServer {
 
 				ClientServiceThread cliThread = new ClientServiceThread(clientSocket);
 				cliThread.start();
-				clientsList.add(cliThread);
+				clientsThreadList.add(cliThread);
 
 			} 
 			catch(IOException ioe) 
@@ -91,6 +94,13 @@ public class MultiClientsServer {
 		new MultiClientsServer();        
 	} 
 
+	public Vector<String> getClientsNameList() {
+		return clientsNameList;
+	}
+
+	public void setClientsNameList(Vector<String> clientsNameList) {
+		this.clientsNameList = clientsNameList;
+	}
 
 	class ClientServiceThread extends Thread 
 	{ 
@@ -146,6 +156,7 @@ public class MultiClientsServer {
 					switch(message.getMessageType()){
 					case LOGON:
 						clientName = message.getComment();
+						clientsNameList.add(clientName);
 						break;
 					case TIME:
 						System.out.println("Client " + clientName + " asks for the time");
@@ -162,6 +173,9 @@ public class MultiClientsServer {
 						System.out.print("Stopping client thread for client : "); 
 						break;
 					case LIST_USERS:
+						MessageUsersList mes = new MessageUsersList(Message.MessageTypes.LIST_USERS, "Here is the list of users");
+						mes.setClientsList(clientsNameList);
+						serverOutputStream.writeObject(mes); 
 						break;
 					}
 				} 
