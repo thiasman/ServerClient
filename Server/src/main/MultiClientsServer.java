@@ -1,18 +1,15 @@
 package main;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Vector;
 
 import messages.BasicMessage;
-
+import messages.Message;
 
 /**
  * Server
@@ -25,7 +22,10 @@ public class MultiClientsServer {
 	ServerSocket myServerSocket;
 	boolean ServerOn = true;
 
-	protected int nbClients =0;
+	protected int nbClients = 0;
+	
+	//Using a vector becaus eit's synchronized
+	Vector<ClientServiceThread> clientsList = new Vector<ClientServiceThread>();
 	
 	public MultiClientsServer() 
 	{ 
@@ -63,7 +63,8 @@ public class MultiClientsServer {
 				// Start a Service thread 
 
 				ClientServiceThread cliThread = new ClientServiceThread(clientSocket);
-				cliThread.start(); 
+				cliThread.start();
+				clientsList.add(cliThread);
 
 			} 
 			catch(IOException ioe) 
@@ -93,6 +94,7 @@ public class MultiClientsServer {
 
 	class ClientServiceThread extends Thread 
 	{ 
+		//Thread for each new client
 		Socket myClientSocket;
 		boolean m_bRunThread = true; 
 
@@ -114,8 +116,6 @@ public class MultiClientsServer {
 
 		public void run() 
 		{            
-		
-			
 			// Print out details of this connection 
 			System.out.println("Accepted client "+ clientNumber +" with address - " + myClientSocket.getInetAddress().getHostName()); 
 
@@ -132,13 +132,13 @@ public class MultiClientsServer {
 				// Run in a loop until m_bRunThread is set to false 
 				while(m_bRunThread) 
 				{                    
-					BasicMessage message = (BasicMessage) serverInputStream.readObject();
+					Message message = (Message) serverInputStream.readObject();
 					
 					if(!ServerOn) 
 					{ 
 						// Special command. Quit this thread 
 						System.out.print("Server has already stopped"); 
-						serverOutputStream.writeObject(new BasicMessage(BasicMessage.MessageTypes.BASIC_MESSAGE, "Server is down"));
+						serverOutputStream.writeObject(new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, "Server is down"));
 						serverOutputStream.flush(); 
 						m_bRunThread = false;   
 
@@ -151,7 +151,7 @@ public class MultiClientsServer {
 						System.out.println("Client " + clientName + " asks for the time");
 						Calendar now = Calendar.getInstance();
 						SimpleDateFormat formatter = new SimpleDateFormat("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-						serverOutputStream.writeObject(new BasicMessage(BasicMessage.MessageTypes.TIME,"It is now : " + formatter.format(now.getTime()))); 
+						serverOutputStream.writeObject(new BasicMessage(Message.MessageTypes.TIME,"It is now : " + formatter.format(now.getTime()))); 
 						break;
 					case POSITION:
 						break;
@@ -160,6 +160,8 @@ public class MultiClientsServer {
 					case QUIT:
 						m_bRunThread = false;   
 						System.out.print("Stopping client thread for client : "); 
+						break;
+					case LIST_USERS:
 						break;
 					}
 				} 
@@ -183,8 +185,14 @@ public class MultiClientsServer {
 					ioe.printStackTrace(); 
 				} 
 			} 
+		}
+
+		public String getClientName() {
+			return clientName;
+		}
+
+		public void setClientName(String clientName) {
+			this.clientName = clientName;
 		} 
-
-
 	} 
 }

@@ -1,11 +1,16 @@
 package main;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Vector;
 
 import messages.BasicMessage;
+import messages.Message;
+import messages.MessageUsersList;
 /**
  * Connect to the server
  *
@@ -25,7 +30,7 @@ public class BasicClient {
 
 	public void logon(){
 		try {
-			outputStream.writeObject(new BasicMessage(BasicMessage.MessageTypes.LOGON, getUser().getName()));
+			outputStream.writeObject(new BasicMessage(Message.MessageTypes.LOGON, getUser().getName()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -72,7 +77,7 @@ public class BasicClient {
 		{
 			switch(userInput){
 				case "A":
-					BasicMessage time = new BasicMessage();
+					Message time = new BasicMessage();
 					client.outputStream.writeObject(time);
 					break;
 			}
@@ -91,10 +96,11 @@ public class BasicClient {
 	
 	class ThreadListener extends Thread 
 	{
+		//Create a thread which will just listen to the socket
 		public void run() 
 		{
 			try {
-				BasicMessage message = (BasicMessage) inputStream.readObject();
+				Message message = (Message) inputStream.readObject();
 				
 				switch(message.getMessageType()){
 				case LOGON:
@@ -110,6 +116,9 @@ public class BasicClient {
 				case QUIT:
 					System.out.print("Server down: "); 
 					break;
+				case LIST_USERS:
+					DisplayListUsers(((MessageUsersList) message).getClientsList());
+					break;
 				}
 				
 			} catch (ClassNotFoundException e) {
@@ -120,6 +129,10 @@ public class BasicClient {
 		}
 	}
 
+	private void DisplayListUsers(Vector<String> clientsList) {
+		
+	}
+	
 	public SimpleUser getUser() {
 		return user;
 	}
