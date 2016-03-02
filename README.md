@@ -6,7 +6,8 @@ Server for the computer part
 
 Add your features here:
 - Don't crash when someone is disconnected LOL
-- ✓ Add messages and requests between server/client
+- ✓ Add messages and requests between server/client (To improve)
+- ✓ Send message to other users (To improve)
 - Password authentification
 - Send GPS position
 - GUI with chat and stuff
