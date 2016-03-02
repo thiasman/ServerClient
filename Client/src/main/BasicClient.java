@@ -93,7 +93,7 @@ public class BasicClient {
 					String username = stdIn.readLine();
 					System.out.println ("Write your message and press enter");
 					String mess = stdIn.readLine();
-					BasicMessage basicMessage = new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, mess, username);
+					BasicMessage basicMessage = new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, mess, username, client.getUser().getName());
 					client.outputStream.writeObject(basicMessage);
 					break;
 			}
@@ -130,7 +130,7 @@ public class BasicClient {
 				case POSITION:
 					break;
 				case BASIC_MESSAGE:
-					System.out.println("You have received a message: " + message.getComment());
+					System.out.println(((BasicMessage) message).getSenderUsername() + ": " + message.getComment());
 					break;
 				case QUIT:
 					System.out.print("Server down: "); 

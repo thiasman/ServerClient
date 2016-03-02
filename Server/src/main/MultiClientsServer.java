@@ -105,7 +105,7 @@ public class MultiClientsServer {
 		this.clientsNameList = clientsNameList;
 	}
 	
-	public void findRecipient(String username, String message){
+	public void findRecipient(String username, String message, String senderUsername){
 		 ClientServiceThread recipient = null;
 		
 		 Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
@@ -119,7 +119,7 @@ public class MultiClientsServer {
 		 }
 		 
 		 if(recipient != null){
-			 recipient.sendMessageTo(message);
+			 recipient.sendMessageTo(message, senderUsername);
 		 }else{
 			 System.out.println("User not found");
 		 }
@@ -143,9 +143,9 @@ public class MultiClientsServer {
 			super(); 
 		} 
 
-		public void sendMessageTo(String message) {
+		public void sendMessageTo(String message, String senderUserName) {
 			try {
-				serverOutputStream.writeObject(new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, message));
+				serverOutputStream.writeObject(new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, message, senderUserName));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -199,7 +199,7 @@ public class MultiClientsServer {
 					case POSITION:
 						break;
 					case BASIC_MESSAGE:
-						findRecipient(((BasicMessage) message).getRecipientUsername(), message.getComment());
+						findRecipient(((BasicMessage) message).getRecipientUsername(), message.getComment(), ((BasicMessage) message).getSenderUsername());
 						break;
 					case QUIT:
 						m_bRunThread = false;   
