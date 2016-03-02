@@ -29,6 +29,8 @@ public class BasicClient {
 	ObjectOutputStream outputStream =  null;
 	ObjectInputStream inputStream =  null;
 	
+	private ThreadListener clientThreadListener = null;
+	
 	public BasicClient() {
 	}
 
@@ -68,8 +70,8 @@ public class BasicClient {
 
 		client.logon();
 		
-		ThreadListener cliThread = client.new ThreadListener();
-		cliThread.start(); 
+		client.clientThreadListener = client.new ThreadListener();
+		client.clientThreadListener.start(); 
 		
 		System.out.println ("Hello "+ client.getUser().getName());
 
@@ -96,6 +98,11 @@ public class BasicClient {
 					BasicMessage basicMessage = new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, mess, username, client.getUser().getName());
 					client.outputStream.writeObject(basicMessage);
 					break;
+				case "Q":
+					client.clientThreadListener.stopThread();
+					AdminMessage quit = new AdminMessage(Message.MessageTypes.QUIT);
+					client.outputStream.writeObject(quit);
+					break;
 			}
 			DisplayMenu();
 		}
@@ -110,41 +117,49 @@ public class BasicClient {
 		System.out.println ("Press T to ask for the time");
 		System.out.println ("Press L for a list of users");
 		System.out.println ("Press S to send a message to a user");
+		System.out.println ("Press Q to disconnect");
 	}
 	
 	class ThreadListener extends Thread 
 	{
+		private boolean running = true;
 		//Create a thread which will just listen to the socket
 		public void run() 
 		{
-			try {
-				Message message = (Message) inputStream.readObject();
-				
-				switch(message.getMessageType()){
-				case LOGON:
-					System.out.println("You shouldn't receive this message");
-					break;
-				case TIME:
-					System.out.println(message.getComment());
-					break;
-				case POSITION:
-					break;
-				case BASIC_MESSAGE:
-					System.out.println(((BasicMessage) message).getSenderUsername() + ": " + message.getComment());
-					break;
-				case QUIT:
-					System.out.print("Server down: "); 
-					break;
-				case LIST_USERS:
-					DisplayListUsers(((MessageUsersList) message).getClientsList());
-					break;
+			while(running){
+				try {
+					Message message = (Message) inputStream.readObject();
+					
+					switch(message.getMessageType()){
+					case LOGON:
+						System.out.println("You shouldn't receive this message");
+						break;
+					case TIME:
+						System.out.println(message.getComment());
+						break;
+					case POSITION:
+						break;
+					case BASIC_MESSAGE:
+						System.out.println(((BasicMessage) message).getSenderUsername() + ": " + message.getComment());
+						break;
+					case QUIT:
+						System.out.print("Server down: "); 
+						break;
+					case LIST_USERS:
+						DisplayListUsers(((MessageUsersList) message).getClientsList());
+						break;
+					}
+					
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
-				
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
+		}
+		
+		public void stopThread(){
+			running=false;
 		}
 	}
 
@@ -161,5 +176,13 @@ public class BasicClient {
 
 	public void setUser(SimpleUser user) {
 		this.user = user;
+	}
+
+	public ThreadListener getClientThreadListener() {
+		return clientThreadListener;
+	}
+
+	public void setClientThreadListener(ThreadListener clientThreadListener) {
+		this.clientThreadListener = clientThreadListener;
 	}
 }

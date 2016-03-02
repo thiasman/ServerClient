@@ -203,7 +203,7 @@ public class MultiClientsServer {
 						break;
 					case QUIT:
 						m_bRunThread = false;   
-						System.out.print("Stopping client thread for client : "); 
+						System.out.print("Stopping client thread for client : " + clientName); 
 						break;
 					case LIST_USERS:
 						MessageUsersList mes = new MessageUsersList(Message.MessageTypes.LIST_USERS, "Here is the list of users");
