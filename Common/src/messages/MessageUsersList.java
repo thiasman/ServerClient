@@ -2,11 +2,11 @@ package messages;
 
 import java.util.Vector;
 
+/**
+ * Message containing a list
+ */
 public class MessageUsersList extends Message {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -227193489442043496L;
 	
 	Vector<String> clientsList = null;

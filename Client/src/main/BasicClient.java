@@ -1,5 +1,6 @@
 package main;
 import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -9,9 +10,11 @@ import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.Vector;
 
+import messages.AdminMessage;
 import messages.BasicMessage;
 import messages.Message;
 import messages.MessageUsersList;
+
 /**
  * Connect to the server
  *
@@ -31,7 +34,7 @@ public class BasicClient {
 
 	public void logon(){
 		try {
-			outputStream.writeObject(new BasicMessage(Message.MessageTypes.LOGON, getUser().getName()));
+			outputStream.writeObject(new AdminMessage(Message.MessageTypes.LOGON, getUser().getName()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -77,13 +80,21 @@ public class BasicClient {
 		while ((userInput = stdIn.readLine()) != null) 
 		{
 			switch(userInput){
-				case "A":
-					BasicMessage time = new BasicMessage();
+				case "T":
+					AdminMessage time = new AdminMessage(Message.MessageTypes.TIME);
 					client.outputStream.writeObject(time);
 					break;
-				case "B":
+				case "L":
 					MessageUsersList list = new MessageUsersList();
 					client.outputStream.writeObject(list);
+					break;
+				case "S":
+					System.out.println ("Write his username and press enter");
+					String username = stdIn.readLine();
+					System.out.println ("Write your message and press enter");
+					String mess = stdIn.readLine();
+					BasicMessage basicMessage = new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, mess, username);
+					client.outputStream.writeObject(basicMessage);
 					break;
 			}
 			DisplayMenu();
@@ -96,8 +107,9 @@ public class BasicClient {
 
 	private static void DisplayMenu() {
 		System.out.println ("MENU :");
-		System.out.println ("Press A to ask for the time");
-		System.out.println ("Press B for a list of users");
+		System.out.println ("Press T to ask for the time");
+		System.out.println ("Press L for a list of users");
+		System.out.println ("Press S to send a message to a user");
 	}
 	
 	class ThreadListener extends Thread 
@@ -118,6 +130,7 @@ public class BasicClient {
 				case POSITION:
 					break;
 				case BASIC_MESSAGE:
+					System.out.println("You have received a message: " + message.getComment());
 					break;
 				case QUIT:
 					System.out.print("Server down: "); 

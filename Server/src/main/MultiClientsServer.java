@@ -6,8 +6,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.Vector;
 
+import main.MultiClientsServer.ClientServiceThread;
+import messages.AdminMessage;
 import messages.BasicMessage;
 import messages.Message;
 import messages.MessageUsersList;
@@ -25,7 +28,7 @@ public class MultiClientsServer {
 
 	protected int nbClients = 0;
 	
-	//Using a vector because it's synchronized
+	//Using a vector because it's synchronised
 	Vector<ClientServiceThread> clientsThreadList = new Vector<ClientServiceThread>();
 	
 	Vector<String> clientsNameList = new Vector<String>();
@@ -101,6 +104,27 @@ public class MultiClientsServer {
 	public void setClientsNameList(Vector<String> clientsNameList) {
 		this.clientsNameList = clientsNameList;
 	}
+	
+	public void findRecipient(String username, String message){
+		 ClientServiceThread recipient = null;
+		
+		 Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
+		   
+		 //use hasNext() and next() methods of Iterator to iterate through the elements
+		 while(itr.hasNext()){
+			 ClientServiceThread tempRecipient = itr.next();
+			 if(tempRecipient.getClientName().equals(username)){
+				 recipient = tempRecipient;
+			 }
+		 }
+		 
+		 if(recipient != null){
+			 recipient.sendMessageTo(message);
+		 }else{
+			 System.out.println("User not found");
+		 }
+		 
+	}
 
 	class ClientServiceThread extends Thread 
 	{ 
@@ -118,6 +142,14 @@ public class MultiClientsServer {
 		{ 
 			super(); 
 		} 
+
+		public void sendMessageTo(String message) {
+			try {
+				serverOutputStream.writeObject(new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, message));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 
 		ClientServiceThread(Socket s) 
 		{ 
@@ -148,7 +180,7 @@ public class MultiClientsServer {
 					{ 
 						// Special command. Quit this thread 
 						System.out.print("Server has already stopped"); 
-						serverOutputStream.writeObject(new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, "Server is down"));
+						serverOutputStream.writeObject(new AdminMessage(Message.MessageTypes.QUIT, "Server is down"));
 						serverOutputStream.flush(); 
 						m_bRunThread = false;   
 
@@ -162,11 +194,12 @@ public class MultiClientsServer {
 						System.out.println("Client " + clientName + " asks for the time");
 						Calendar now = Calendar.getInstance();
 						SimpleDateFormat formatter = new SimpleDateFormat("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-						serverOutputStream.writeObject(new BasicMessage(Message.MessageTypes.TIME,"It is now : " + formatter.format(now.getTime()))); 
+						serverOutputStream.writeObject(new AdminMessage(Message.MessageTypes.TIME,"It is now : " + formatter.format(now.getTime()))); 
 						break;
 					case POSITION:
 						break;
 					case BASIC_MESSAGE:
+						findRecipient(((BasicMessage) message).getRecipientUsername(), message.getComment());
 						break;
 					case QUIT:
 						m_bRunThread = false;   
