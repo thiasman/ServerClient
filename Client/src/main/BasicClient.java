@@ -31,7 +31,55 @@ public class BasicClient {
 	
 	private ThreadListener clientThreadListener = null;
 	
-	public BasicClient() {
+	public BasicClient(String name) {
+		System.out.println ("Attemping to connect to host " + serverHostname + " on port "+ serverPort + " .");
+		
+		setUser(new SimpleUser(name));
+		
+		initializeBuffer();
+
+		logon();
+		
+		clientThreadListener = new ThreadListener();
+		clientThreadListener.start(); 
+		
+		System.out.println ("Hello "+ getUser().getName());
+
+		String userInput = null;
+		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+
+		DisplayMenu();
+		try {
+			while ((userInput = stdIn.readLine()) != null) 
+			{
+				switch(userInput){
+					case "T":
+						AdminMessage time = new AdminMessage(Message.MessageTypes.TIME);
+						outputStream.writeObject(time);
+						break;
+					case "L":
+						MessageUsersList list = new MessageUsersList();
+						outputStream.writeObject(list);
+						break;
+					case "S":
+						System.out.println ("Write his username and press enter");
+						String username = stdIn.readLine();
+						System.out.println ("Write your message and press enter");
+						String mess = stdIn.readLine();
+						BasicMessage basicMessage = new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, mess, username, getUser().getName());
+						outputStream.writeObject(basicMessage);
+						break;
+					case "Q":
+						clientThreadListener.stopThread();
+						AdminMessage quit = new AdminMessage(Message.MessageTypes.QUIT);
+						outputStream.writeObject(quit);
+						logout();
+						break;
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void logon(){
@@ -42,6 +90,17 @@ public class BasicClient {
 		}
 	}
 
+	public void logout(){
+		try {
+			outputStream.close();
+			inputStream.close();
+			echoSocket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+	
 	public void initializeBuffer(){
 		try {
 			echoSocket = new Socket(serverHostname, serverPort);
@@ -59,57 +118,7 @@ public class BasicClient {
 	}
 
 	public static void main(String[] args) throws IOException {
-
-		BasicClient client = new BasicClient();
-
-		client.setUser(new SimpleUser(args[0]));
-
-		System.out.println ("Attemping to connect to host " + client.serverHostname + " on port "+ client.serverPort + " .");
-		
-		client.initializeBuffer();
-
-		client.logon();
-		
-		client.clientThreadListener = client.new ThreadListener();
-		client.clientThreadListener.start(); 
-		
-		System.out.println ("Hello "+ client.getUser().getName());
-
-		String userInput = null;
-		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-
-		DisplayMenu();
-		while ((userInput = stdIn.readLine()) != null) 
-		{
-			switch(userInput){
-				case "T":
-					AdminMessage time = new AdminMessage(Message.MessageTypes.TIME);
-					client.outputStream.writeObject(time);
-					break;
-				case "L":
-					MessageUsersList list = new MessageUsersList();
-					client.outputStream.writeObject(list);
-					break;
-				case "S":
-					System.out.println ("Write his username and press enter");
-					String username = stdIn.readLine();
-					System.out.println ("Write your message and press enter");
-					String mess = stdIn.readLine();
-					BasicMessage basicMessage = new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, mess, username, client.getUser().getName());
-					client.outputStream.writeObject(basicMessage);
-					break;
-				case "Q":
-					client.clientThreadListener.stopThread();
-					AdminMessage quit = new AdminMessage(Message.MessageTypes.QUIT);
-					client.outputStream.writeObject(quit);
-					break;
-			}
-			DisplayMenu();
-		}
-		
-		client.outputStream.close();
-		client.inputStream.close();
-		client.echoSocket.close();
+		BasicClient client = new BasicClient(args[0]);
 	}
 
 	private static void DisplayMenu() {
