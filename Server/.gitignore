@@ -1,4 +1,5 @@
 /bin/
 /.properties/
-/.project/
+.project/
+/.gradle/
 /.classpath
