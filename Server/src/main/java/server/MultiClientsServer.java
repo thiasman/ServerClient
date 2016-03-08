@@ -1,4 +1,5 @@
-package main;
+package server;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -9,12 +10,10 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Vector;
 
-import main.MultiClientsServer.ClientServiceThread;
 import messages.AdminMessage;
 import messages.BasicMessage;
 import messages.Message;
 import messages.MessageUsersList;
-
 /**
  * Server
  *

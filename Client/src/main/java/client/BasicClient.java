@@ -1,4 +1,4 @@
-package main;
+package client;
 import java.io.BufferedReader;
 
 import java.io.IOException;
@@ -70,10 +70,10 @@ public class BasicClient {
 						outputStream.writeObject(basicMessage);
 						break;
 					case "Q":
-						clientThreadListener.stopThread();
 						AdminMessage quit = new AdminMessage(Message.MessageTypes.QUIT);
 						outputStream.writeObject(quit);
 						logout();
+						clientThreadListener.stopThread();
 						break;
 				}
 			}
@@ -118,6 +118,7 @@ public class BasicClient {
 	}
 
 	public static void main(String[] args) throws IOException {
+		@SuppressWarnings("unused")
 		BasicClient client = new BasicClient(args[0]);
 	}
 
@@ -162,7 +163,7 @@ public class BasicClient {
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
-					e.printStackTrace();
+					System.out.println("Application exit");
 				}
 			}
 		}
