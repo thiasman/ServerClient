@@ -18,6 +18,9 @@ public abstract class Message implements Serializable{
 	private MessageTypes messageType;
 	private String comment = "";
 	
+	private String recipientUsername;
+	private String senderUsername;
+	
 	public Message() {
 	}
 	
@@ -28,6 +31,19 @@ public abstract class Message implements Serializable{
 	public Message(MessageTypes type, String comment) {
 		this.messageType = type;
 		this.setComment(comment);
+	}
+	
+	public Message(MessageTypes type, String comment, String recipientUsername, String senderUsername) {
+		this.messageType = type;
+		this.setComment(comment);
+		this.setRecipientUsername(recipientUsername);
+		this.setSenderUsername(senderUsername);
+	}
+	
+	public Message(MessageTypes type, String comment, String senderUsername) {
+		this.messageType = type;
+		this.setComment(comment);
+		this.setRecipientUsername(recipientUsername);
 	}
 	
 	public MessageTypes getMessageType() {
@@ -44,6 +60,23 @@ public abstract class Message implements Serializable{
 
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+	
+	
+	public String getRecipientUsername() {
+		return recipientUsername;
+	}
+
+	public void setRecipientUsername(String recipientUsername) {
+		this.recipientUsername = recipientUsername;
+	}
+
+	public String getSenderUsername() {
+		return senderUsername;
+	}
+
+	public void setSenderUsername(String senderUsername) {
+		this.senderUsername = senderUsername;
 	}
 	
 }
