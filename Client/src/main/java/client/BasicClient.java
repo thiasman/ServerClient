@@ -12,6 +12,7 @@ import java.util.Vector;
 
 import messages.AdminMessage;
 import messages.BasicMessage;
+import messages.LogonMessage;
 import messages.Message;
 import messages.MessageUsersList;
 
@@ -31,14 +32,14 @@ public class BasicClient {
 	
 	private ThreadListener clientThreadListener = null;
 	
-	public BasicClient(String name) {
+	public BasicClient(String name, String pwd) {
 		System.out.println ("Attemping to connect to host " + serverHostname + " on port "+ serverPort + " .");
 		
 		setUser(new SimpleUser(name));
 		
 		initializeBuffer();
 
-		logon();
+		logon(pwd);
 		
 		clientThreadListener = new ThreadListener();
 		clientThreadListener.start(); 
@@ -82,9 +83,9 @@ public class BasicClient {
 		}
 	}
 
-	public void logon(){
+	public void logon(String pwd){
 		try {
-			outputStream.writeObject(new AdminMessage(Message.MessageTypes.LOGON, getUser().getName()));
+			outputStream.writeObject(new LogonMessage(getUser().getName(), pwd));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -119,7 +120,7 @@ public class BasicClient {
 
 	public static void main(String[] args) throws IOException {
 		@SuppressWarnings("unused")
-		BasicClient client = new BasicClient(args[0]);
+		BasicClient client = new BasicClient(args[0], args[1]);
 	}
 
 	private static void DisplayMenu() {
@@ -164,6 +165,7 @@ public class BasicClient {
 					e.printStackTrace();
 				} catch (IOException e) {
 					System.out.println("Application exit");
+					stopThread();
 				}
 			}
 		}

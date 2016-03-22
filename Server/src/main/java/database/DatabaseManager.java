@@ -10,39 +10,82 @@ import java.sql.*;
  */
 
 public class DatabaseManager {
-   // JDBC driver name and database URL
-   static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
-   static final String DB_URL = "jdbc:mysql://localhost/server_database";
+	// JDBC driver name and database URL
+	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
+	static final String DB_URL = "jdbc:mysql://localhost/server_database";
 
-   //  Database credentials
-   static final String USER = "root";
-   static final String PASS = "0000";
-   
-   public static void main(String[] args) {
-   Connection conn = null;
-   try{
-      //STEP 2: Register JDBC driver
-      Class.forName("com.mysql.jdbc.Driver");
+	//  Database credentials
+	static final String DB_USER = "root";
+	static final String DB_PASSWORD = "0000";
 
-      //STEP 3: Open a connection
-      System.out.println("Connecting to a selected database...");
-      conn = DriverManager.getConnection(DB_URL, USER, PASS);
-      System.out.println("Connected database successfully...");
-   }catch(SQLException se){
-      //Handle errors for JDBC
-      se.printStackTrace();
-   }catch(Exception e){
-      //Handle errors for Class.forName
-      e.printStackTrace();
-   }finally{
-      //finally block used to close resources
-      try{
-         if(conn!=null)
-            conn.close();
-      }catch(SQLException se){
-         se.printStackTrace();
-      }//end finally try
-   }//end try
-   System.out.println("Goodbye!");
-}//end main
-}//end JDBCExample
+	private Connection dbConnection = null;
+
+	boolean ConnectedToDB = false;
+	
+	public DatabaseManager() {
+		ConnectionToDB();
+	}
+
+	public boolean checkPassword(String username, String password){
+		String goodPassword = null;
+		boolean isGood = false;
+		try {
+			Statement stmt = dbConnection.createStatement();
+			System.out.println("Fetching password for username " + username);
+			String sql = "SELECT password FROM clients" + " WHERE username = \"" + username + "\";";
+			
+			ResultSet rs = stmt.executeQuery(sql);
+			
+			while(rs.next()){
+		         goodPassword = rs.getString("password");
+		    }
+			
+			if(password.equals(goodPassword)){
+				isGood = true;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return isGood;
+	}
+
+	private void ConnectionToDB() {
+		dbConnection = null;
+		try{
+			//STEP 2: Register JDBC driver
+			Class.forName("com.mysql.jdbc.Driver");
+
+			//STEP 3: Open a connection
+			System.out.println("Connecting to a selected database...");
+			dbConnection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+			System.out.println("Connected database successfully...");
+			
+			ConnectedToDB = true;
+
+		}catch(SQLException se){
+			se.printStackTrace();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+
+	public void closeConnectionToDB() throws SQLException{
+		System.out.println("Closing connection to DB ...");
+		ConnectedToDB = false;
+		dbConnection.close();
+	}
+	
+	public static void main(String[] args) {
+		//Main class use for testing
+		DatabaseManager dbManager = new DatabaseManager();
+		dbManager.ConnectionToDB();
+	}
+	
+	public boolean isConnectedToDB() {
+		return ConnectedToDB;
+	}
+
+	public void setConnectedToDB(boolean connected) {
+		this.ConnectedToDB = connected;
+	}
+}

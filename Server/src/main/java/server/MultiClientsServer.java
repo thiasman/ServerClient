@@ -10,10 +10,8 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Vector;
 
-import messages.AdminMessage;
-import messages.BasicMessage;
-import messages.Message;
-import messages.MessageUsersList;
+import database.DatabaseManager;
+import messages.*;
 /**
  * Server
  *
@@ -26,6 +24,8 @@ public class MultiClientsServer {
 	boolean ServerOn = true;
 
 	protected int nbClients = 0;
+	
+	private DatabaseManager dbManager;
 	
 	//Using a vector because it's synchronised
 	Vector<ClientServiceThread> clientsThreadList = new Vector<ClientServiceThread>();
@@ -48,6 +48,8 @@ public class MultiClientsServer {
 		SimpleDateFormat formatter = new SimpleDateFormat("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
 		System.out.println("It is now : " + formatter.format(now.getTime()));
 
+		dbManager = new DatabaseManager();
+		
 		// Successfully created Server Socket. Now wait for connections. 
 		while(ServerOn) 
 		{                        
@@ -186,8 +188,16 @@ public class MultiClientsServer {
 					}
 					switch(message.getMessageType()){
 					case LOGON:
-						clientName = message.getComment();
-						clientsNameList.add(clientName);
+						clientName = ((LogonMessage)message).getLogonUsername();
+						if(dbManager.isConnectedToDB()){
+							if(dbManager.checkPassword(clientName, ((LogonMessage)message).getLogonPassword())){
+								clientsNameList.add(clientName);
+								System.out.println("Client " + clientName + " successfully connect to the server.");
+							}else{
+								m_bRunThread = false;
+								System.out.println("Wrong password or username");
+							}
+						}
 						break;
 					case TIME:
 						System.out.println("Client " + clientName + " asks for the time");
