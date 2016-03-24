@@ -2,8 +2,8 @@
 <projectDescription>
 	<name>Common</name>
 	<comment></comment>
-	<projects>
-	</projects>
+<projects>
+</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.jdt.core.javabuilder</name>

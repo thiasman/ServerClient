@@ -14,4 +14,5 @@ public class AdminMessage extends Message{
 	public AdminMessage(MessageTypes type, String comment) {
 		super(type, comment);
 	}
+	
 }

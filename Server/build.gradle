@@ -1,0 +1,26 @@
+/**
+*To use Gradle:
+*	- Download it at http://gradle.org/
+*	- Unzip it in a known folder like C:/Gradle
+*	- Add the path of the bin folder to the environment variable "path" of windows
+*	- Download the gradle plugins for eclipse and the StartExplorer plugin
+*	- Start shell thanks to the start explorer project at the root of the project Server
+*	- Run the command "gradle testCouille"
+*	- Should work ;)
+*   - Then "gradle eclipse" to build the dependencies
+**/
+
+apply plugin: 'java'
+apply plugin : 'eclipse'
+ 
+repositories {
+   mavenCentral()
+}
+
+dependencies {
+	compile group: 'mysql', name: 'mysql-connector-java', version: '5.1.38'
+}
+
+task testCouille << {
+  println 'Hello Gradle Couille'
+}
