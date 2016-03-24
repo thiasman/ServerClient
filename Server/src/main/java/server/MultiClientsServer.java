@@ -1,8 +1,6 @@
 package server;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.text.SimpleDateFormat;
@@ -11,7 +9,6 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import database.DatabaseManager;
-import messages.*;
 /**
  * Server
  *
@@ -21,11 +18,9 @@ public class MultiClientsServer {
 	private final int port = 10008;
 	
 	ServerSocket myServerSocket;
-	boolean ServerOn = true;
-
-	protected static int nbClients = 0;
+	private static boolean serverOn = true;
 	
-	private DatabaseManager dbManager;
+	private static DatabaseManager dbManager;
 	
 	//Using a vector because it's synchronised
 	private static Vector<ClientServiceThread> clientsThreadList = new Vector<ClientServiceThread>();
@@ -46,10 +41,10 @@ public class MultiClientsServer {
 		SimpleDateFormat formatter = new SimpleDateFormat("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
 		System.out.println("It is now : " + formatter.format(now.getTime()));
 
-		dbManager = new DatabaseManager();
+		setDbManager(new DatabaseManager());
 		
 		// Successfully created Server Socket. Now wait for connections. 
-		while(ServerOn) 
+		while(serverOn) 
 		{                        
 			try 
 			{ 
@@ -78,10 +73,13 @@ public class MultiClientsServer {
 				ioe.printStackTrace(); 
 			} 
 		}
+	} 
 
+	public void stopServer(){
 		try 
 		{ 
-			myServerSocket.close(); 
+			myServerSocket.close();
+			serverOn = false;
 			System.out.println("Server Stopped"); 
 		} 
 		catch(Exception ioe) 
@@ -89,14 +87,14 @@ public class MultiClientsServer {
 			System.out.println("Problem stopping server socket"); 
 			System.exit(-1); 
 		} 
-	} 
-
+	}
+	
 	public static void main (String[] args) 
 	{ 
 		new MultiClientsServer();        
 	} 
 	
-	public void findRecipient(String username, String message, String senderUsername){
+	public static void findRecipient(String username, String message, String senderUsername){
 		 ClientServiceThread recipient = null;
 		
 		 Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
@@ -113,146 +111,38 @@ public class MultiClientsServer {
 			 recipient.sendMessageTo(message, senderUsername);
 		 }else{
 			 System.out.println("User not found");
-		 }
-		 
+		 } 
 	}
 
-	class ClientServiceThread extends Thread 
-	{ 
-		//Thread for each new client
-		Socket myClientSocket;
-		boolean m_bRunThread = true; 
-
-		ObjectInputStream serverInputStream = null;
-        ObjectOutputStream serverOutputStream = null;
+	public static void RemoveFromList() {
+		// TODO Auto-generated method stub
 		
-		private int clientNumber =++nbClients;
-		private String clientName;
+	}
+	
+	public static boolean isServerOn(){
+		return serverOn;
+	}
+	
+	public static Vector<String> getListOfClients() {
+		
+		Vector<String> clientsList = new Vector<String>();
+		
+		Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
+		   
+		 //use hasNext() and next() methods of Iterator to iterate through the elements
+		 while(itr.hasNext()){
+			 ClientServiceThread tempClientService = itr.next();
+			 clientsList.add(tempClientService.getClientName());
+		 }
+		
+		return clientsList;
+	}
 
-		public ClientServiceThread() 
-		{ 
-			super(); 
-		} 
+	public static DatabaseManager getDbManager() {
+		return dbManager;
+	}
 
-		public void sendMessageTo(String message, String senderUserName) {
-			try {
-				serverOutputStream.writeObject(new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, message, senderUserName));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		ClientServiceThread(Socket s) 
-		{ 
-			myClientSocket = s; 
-		} 
-
-		public void run() 
-		{            
-			// Print out details of this connection 
-			System.out.println("Accepted client "+ clientNumber +" with address - " + myClientSocket.getInetAddress().getHostName()); 
-
-			try 
-			{                                
-				serverInputStream = new ObjectInputStream(myClientSocket.getInputStream());
-				serverOutputStream = new ObjectOutputStream(myClientSocket.getOutputStream());
-				
-				//Read the name which is sent automatically
-				//clientName = in.readLine(); 
-
-				// At this point, we can read for input and reply with appropriate output. 
-
-				// Run in a loop until m_bRunThread is set to false 
-				while(m_bRunThread) 
-				{                    
-					Message message = (Message) serverInputStream.readObject();
-					
-					if(!ServerOn) 
-					{ 
-						// Special command. Quit this thread 
-						System.out.print("Server has already stopped"); 
-						serverOutputStream.writeObject(new AdminMessage(Message.MessageTypes.QUIT, "Server is down"));
-						serverOutputStream.flush(); 
-						m_bRunThread = false;   
-
-					}
-					switch(message.getMessageType()){
-					case LOGON:
-						if(dbManager.isConnectedToDB()){
-							if(dbManager.checkPassword(((LogonMessage)message).getLogonUsername(), ((LogonMessage)message).getLogonPassword())){
-								clientName = ((LogonMessage)message).getLogonUsername();
-								System.out.println("Client " + clientName + " successfully connect to the server.");
-							}else{
-								m_bRunThread = false;
-								System.out.println("Wrong password or username");
-							}
-						}
-						break;
-					case TIME:
-						System.out.println("Client " + clientName + " asks for the time");
-						Calendar now = Calendar.getInstance();
-						SimpleDateFormat formatter = new SimpleDateFormat("E yyyy.MM.dd 'at' hh:mm:ss a zzz");
-						serverOutputStream.writeObject(new AdminMessage(Message.MessageTypes.TIME,"It is now : " + formatter.format(now.getTime()))); 
-						break;
-					case POSITION:
-						break;
-					case BASIC_MESSAGE:
-						findRecipient(((BasicMessage) message).getRecipientUsername(), message.getComment(), ((BasicMessage) message).getSenderUsername());
-						break;
-					case QUIT:
-						m_bRunThread = false;   
-						System.out.print("Stopping client thread for client : " + clientName); 
-						break;
-					case LIST_USERS:
-						MessageUsersList mes = new MessageUsersList(Message.MessageTypes.LIST_USERS, "Here is the list of users");
-						mes.setClientsList(getListOfClients());
-						serverOutputStream.writeObject(mes); 
-						break;
-					}
-				} 
-			} 
-			catch(Exception e) 
-			{ 
-				e.printStackTrace(); 
-			} 
-			finally 
-			{ 
-				// Clean up 
-				try 
-				{        
-					serverOutputStream.close();
-					serverInputStream.close();
-					myClientSocket.close(); 
-					System.out.println("...Stopped"); 
-				} 
-				catch(IOException ioe) 
-				{ 
-					ioe.printStackTrace(); 
-				} 
-			} 
-		}
-
-		private Vector<String> getListOfClients() {
-			
-			Vector<String> clientsList = new Vector<String>();
-			
-			Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
-			   
-			 //use hasNext() and next() methods of Iterator to iterate through the elements
-			 while(itr.hasNext()){
-				 ClientServiceThread tempClientService = itr.next();
-				 clientsList.add(tempClientService.clientName);
-			 }
-			
-			return clientsList;
-		}
-
-		public String getClientName() {
-			return clientName;
-		}
-
-		public void setClientName(String clientName) {
-			this.clientName = clientName;
-		} 
-	} 
+	public static void setDbManager(DatabaseManager dbManager) {
+		MultiClientsServer.dbManager = dbManager;
+	}
 }
