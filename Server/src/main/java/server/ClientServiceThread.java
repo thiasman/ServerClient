@@ -96,7 +96,7 @@ class ClientServiceThread extends Thread
 					break;
 				case QUIT:
 					m_bRunThread = false;
-					MultiClientsServer.RemoveFromList();
+					MultiClientsServer.RemoveFromList(clientName);
 					System.out.print("Stopping client thread for client : " + clientName); 
 					break;
 				case LIST_USERS:
@@ -113,9 +113,12 @@ class ClientServiceThread extends Thread
 		} 
 		finally 
 		{ 
-			// Clean up 
+			// Finally statement is executed even if an exception is caught
+			// Used to clean all the shit
 			try 
-			{        
+			{   
+				m_bRunThread = false;
+				MultiClientsServer.RemoveFromList(clientName);
 				serverOutputStream.close();
 				serverInputStream.close();
 				myClientSocket.close(); 

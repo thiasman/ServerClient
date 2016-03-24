@@ -16,15 +16,15 @@ import database.DatabaseManager;
 public class MultiClientsServer {
 
 	private final int port = 10008;
-	
+
 	ServerSocket myServerSocket;
 	private static boolean serverOn = true;
-	
+
 	private static DatabaseManager dbManager;
-	
+
 	//Using a vector because it's synchronised
 	private static Vector<ClientServiceThread> clientsThreadList = new Vector<ClientServiceThread>();
-	
+
 	public MultiClientsServer() 
 	{ 
 		try 
@@ -42,7 +42,7 @@ public class MultiClientsServer {
 		System.out.println("It is now : " + formatter.format(now.getTime()));
 
 		setDbManager(new DatabaseManager());
-		
+
 		// Successfully created Server Socket. Now wait for connections. 
 		while(serverOn) 
 		{                        
@@ -88,53 +88,58 @@ public class MultiClientsServer {
 			System.exit(-1); 
 		} 
 	}
-	
+
 	public static void main (String[] args) 
 	{ 
 		new MultiClientsServer();        
 	} 
-	
+
 	public static void findRecipient(String username, String message, String senderUsername){
-		 ClientServiceThread recipient = null;
-		
-		 Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
-		   
-		 //use hasNext() and next() methods of Iterator to iterate through the elements
-		 while(itr.hasNext()){
-			 ClientServiceThread tempRecipient = itr.next();
-			 if(tempRecipient.getClientName().equals(username)){
-				 recipient = tempRecipient;
-			 }
-		 }
-		 
-		 if(recipient != null){
-			 recipient.sendMessageTo(message, senderUsername);
-		 }else{
-			 System.out.println("User not found");
-		 } 
+		ClientServiceThread recipient = null;
+
+		Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
+
+		//use hasNext() and next() methods of Iterator to iterate through the elements
+		while(itr.hasNext()){
+			ClientServiceThread tempRecipient = itr.next();
+			if(tempRecipient.getClientName().equals(username)){
+				recipient = tempRecipient;
+			}
+		}
+
+		if(recipient != null){
+			recipient.sendMessageTo(message, senderUsername);
+		}else{
+			System.out.println("User not found");
+		} 
 	}
 
-	public static void RemoveFromList() {
-		// TODO Auto-generated method stub
-		
+	public static void RemoveFromList(String clientName) {
+		Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
+		while(itr.hasNext()){
+			ClientServiceThread tempRecipient = itr.next();
+			if(tempRecipient.getClientName().equals(clientName)){
+				itr.remove();
+			}
+		}
 	}
-	
+
 	public static boolean isServerOn(){
 		return serverOn;
 	}
-	
+
 	public static Vector<String> getListOfClients() {
-		
+
 		Vector<String> clientsList = new Vector<String>();
-		
+
 		Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
-		   
-		 //use hasNext() and next() methods of Iterator to iterate through the elements
-		 while(itr.hasNext()){
-			 ClientServiceThread tempClientService = itr.next();
-			 clientsList.add(tempClientService.getClientName());
-		 }
-		
+
+		//use hasNext() and next() methods of Iterator to iterate through the elements
+		while(itr.hasNext()){
+			ClientServiceThread tempClientService = itr.next();
+			clientsList.add(tempClientService.getClientName());
+		}
+
 		return clientsList;
 	}
 
