@@ -96,20 +96,25 @@ public class MultiClientsServer {
 
 	public static void findRecipient(String username, String message, String senderUsername){
 		ClientServiceThread recipient = null;
-
+		ClientServiceThread sender = null;
+		
 		Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
 
 		//use hasNext() and next() methods of Iterator to iterate through the elements
 		while(itr.hasNext()){
-			ClientServiceThread tempRecipient = itr.next();
-			if(tempRecipient.getClientName().equals(username)){
-				recipient = tempRecipient;
+			ClientServiceThread tempClient = itr.next();
+			if(tempClient.getClientName().equals(username)){
+				recipient = tempClient;
+			}
+			if(tempClient.getClientName().equals(senderUsername)){
+				sender = tempClient;
 			}
 		}
 
 		if(recipient != null){
 			recipient.sendMessageTo(message, senderUsername);
 		}else{
+			sender.sendMessage("User not found");
 			System.out.println("User not found");
 		} 
 	}

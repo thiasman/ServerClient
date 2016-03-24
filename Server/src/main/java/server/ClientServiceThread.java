@@ -37,6 +37,14 @@ class ClientServiceThread extends Thread
 		}
 	}
 
+	public void sendMessage(String message) {
+		try {
+			serverOutputStream.writeObject(new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, message));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	ClientServiceThread(Socket s) 
 	{ 
 		myClientSocket = s; 
@@ -109,7 +117,7 @@ class ClientServiceThread extends Thread
 		} 
 		catch(Exception e) 
 		{ 
-			e.printStackTrace(); 
+			System.out.println("Client " + clientName + " is disconnected");
 		} 
 		finally 
 		{ 
@@ -118,11 +126,12 @@ class ClientServiceThread extends Thread
 			try 
 			{   
 				m_bRunThread = false;
-				MultiClientsServer.RemoveFromList(clientName);
+				if(clientName!=null){//If wrong password the clientName won't be in the list
+					MultiClientsServer.RemoveFromList(clientName);
+				}
 				serverOutputStream.close();
 				serverInputStream.close();
 				myClientSocket.close(); 
-				System.out.println("...Stopped"); 
 			} 
 			catch(IOException ioe) 
 			{ 

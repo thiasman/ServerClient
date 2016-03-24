@@ -151,7 +151,11 @@ public class BasicClient {
 					case POSITION:
 						break;
 					case BASIC_MESSAGE:
-						System.out.println(((BasicMessage) message).getSenderUsername() + ": " + message.getComment());
+						if(((BasicMessage) message).getSenderUsername() != null){
+							System.out.println(((BasicMessage) message).getSenderUsername() + ": " + message.getComment());
+						}else{
+							System.out.println("Server: " + message.getComment());
+						}
 						break;
 					case QUIT:
 						System.out.print("Server down: "); 

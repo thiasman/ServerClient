@@ -12,7 +12,7 @@ import java.sql.*;
 public class DatabaseManager {
 	// JDBC driver name and database URL
 	static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
-	static final String DB_URL = "jdbc:mysql://localhost/server_database";
+	static final String DB_URL = "jdbc:mysql://localhost/server_database?characterEncoding=UTF-8&useSSL=false";
 
 	//  Database credentials
 	static final String DB_USER = "root";
