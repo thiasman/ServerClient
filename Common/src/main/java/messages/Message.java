@@ -43,7 +43,7 @@ public abstract class Message implements Serializable{
 	public Message(MessageTypes type, String comment, String senderUsername) {
 		this.messageType = type;
 		this.setComment(comment);
-		this.setRecipientUsername(recipientUsername);
+		this.setSenderUsername(senderUsername);
 	}
 	
 	public MessageTypes getMessageType() {
