@@ -23,14 +23,12 @@ public class MultiClientsServer {
 	ServerSocket myServerSocket;
 	boolean ServerOn = true;
 
-	protected int nbClients = 0;
+	protected static int nbClients = 0;
 	
 	private DatabaseManager dbManager;
 	
 	//Using a vector because it's synchronised
-	Vector<ClientServiceThread> clientsThreadList = new Vector<ClientServiceThread>();
-	
-	Vector<String> clientsNameList = new Vector<String>();
+	private static Vector<ClientServiceThread> clientsThreadList = new Vector<ClientServiceThread>();
 	
 	public MultiClientsServer() 
 	{ 
@@ -97,14 +95,6 @@ public class MultiClientsServer {
 	{ 
 		new MultiClientsServer();        
 	} 
-
-	public Vector<String> getClientsNameList() {
-		return clientsNameList;
-	}
-
-	public void setClientsNameList(Vector<String> clientsNameList) {
-		this.clientsNameList = clientsNameList;
-	}
 	
 	public void findRecipient(String username, String message, String senderUsername){
 		 ClientServiceThread recipient = null;
@@ -188,10 +178,9 @@ public class MultiClientsServer {
 					}
 					switch(message.getMessageType()){
 					case LOGON:
-						clientName = ((LogonMessage)message).getLogonUsername();
 						if(dbManager.isConnectedToDB()){
-							if(dbManager.checkPassword(clientName, ((LogonMessage)message).getLogonPassword())){
-								clientsNameList.add(clientName);
+							if(dbManager.checkPassword(((LogonMessage)message).getLogonUsername(), ((LogonMessage)message).getLogonPassword())){
+								clientName = ((LogonMessage)message).getLogonUsername();
 								System.out.println("Client " + clientName + " successfully connect to the server.");
 							}else{
 								m_bRunThread = false;
@@ -216,7 +205,7 @@ public class MultiClientsServer {
 						break;
 					case LIST_USERS:
 						MessageUsersList mes = new MessageUsersList(Message.MessageTypes.LIST_USERS, "Here is the list of users");
-						mes.setClientsList(clientsNameList);
+						mes.setClientsList(getListOfClients());
 						serverOutputStream.writeObject(mes); 
 						break;
 					}
@@ -241,6 +230,21 @@ public class MultiClientsServer {
 					ioe.printStackTrace(); 
 				} 
 			} 
+		}
+
+		private Vector<String> getListOfClients() {
+			
+			Vector<String> clientsList = new Vector<String>();
+			
+			Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
+			   
+			 //use hasNext() and next() methods of Iterator to iterate through the elements
+			 while(itr.hasNext()){
+				 ClientServiceThread tempClientService = itr.next();
+				 clientsList.add(tempClientService.clientName);
+			 }
+			
+			return clientsList;
 		}
 
 		public String getClientName() {

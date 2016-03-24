@@ -164,7 +164,7 @@ public class BasicClient {
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
-					System.out.println("Application exit");
+					System.out.println("Connexion lost");
 					stopThread();
 				}
 			}
