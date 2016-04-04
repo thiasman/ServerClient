@@ -1,4 +1,4 @@
-package messages;
+package message;
 
 /**
  * Message from a user to another one

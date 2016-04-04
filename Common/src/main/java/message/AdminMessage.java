@@ -1,4 +1,4 @@
-package messages;
+package message;
 
 /**
  * Message for the server

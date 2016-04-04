@@ -7,11 +7,11 @@ import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import messages.AdminMessage;
-import messages.BasicMessage;
-import messages.LogonMessage;
-import messages.Message;
-import messages.MessageUsersList;
+import message.AdminMessage;
+import message.BasicMessage;
+import message.LogonMessage;
+import message.Message;
+import message.MessageUsersList;
 
 class ClientServiceThread extends Thread 
 { 

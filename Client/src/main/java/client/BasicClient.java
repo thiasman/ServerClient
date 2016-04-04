@@ -1,6 +1,6 @@
 package client;
-import java.io.BufferedReader;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -10,11 +10,11 @@ import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.Vector;
 
-import messages.AdminMessage;
-import messages.BasicMessage;
-import messages.LogonMessage;
-import messages.Message;
-import messages.MessageUsersList;
+import message.Message;
+import message.AdminMessage;
+import message.BasicMessage;
+import message.LogonMessage;
+import message.MessageUsersList;
 
 /**
  * Connect to the server

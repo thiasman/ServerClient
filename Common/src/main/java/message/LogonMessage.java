@@ -1,4 +1,4 @@
-package messages;
+package message;
 
 public class LogonMessage extends Message {
 
