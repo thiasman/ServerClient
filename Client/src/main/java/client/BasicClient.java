@@ -32,14 +32,57 @@ public class BasicClient {
 	
 	private ThreadListener clientThreadListener = null;
 	
+	private String storedPassword;
+	private boolean connectedToServer = false;
+	
 	public BasicClient(String name, String pwd) {
 		System.out.println ("Attemping to connect to host " + serverHostname + " on port "+ serverPort + " .");
 		
 		setUser(new SimpleUser(name));
 		
-		initializeBuffer();
+		storedPassword = pwd;
+		
+		if(initializeBuffer()){
+			connectedToServer = true;
+			connectToServer();
+		}
+		else{
+			connectedToServer = false;
+			notConnectedToServer();
+		}
+	}
 
-		logon(pwd);
+	private void notConnectedToServer() {
+		String userInput = null;
+		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+		
+		System.out.println ("Press C to to try to connect to the server");
+		
+		try {
+			while ((userInput = stdIn.readLine()) != null)
+			{
+				switch(userInput){
+				case "C":
+					if(initializeBuffer()){
+						connectedToServer = true;
+						connectToServer();
+					}
+					else{
+						connectedToServer = false;
+						notConnectedToServer();
+					}
+					break;
+				}
+			}
+		}
+		 catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
+	private void connectToServer() {
+		logon(storedPassword);
 		
 		clientThreadListener = new ThreadListener();
 		clientThreadListener.start(); 
@@ -51,7 +94,7 @@ public class BasicClient {
 
 		DisplayMenu();
 		try {
-			while ((userInput = stdIn.readLine()) != null) 
+			while ((userInput = stdIn.readLine()) != null && connectedToServer) 
 			{
 				switch(userInput){
 					case "T":
@@ -81,6 +124,7 @@ public class BasicClient {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 	}
 
 	public void logon(String pwd){
@@ -102,18 +146,20 @@ public class BasicClient {
 
 	}
 	
-	public void initializeBuffer(){
+	public boolean initializeBuffer(){
 		try {
 			echoSocket = new Socket(serverHostname, serverPort);
 			outputStream =  new ObjectOutputStream(echoSocket.getOutputStream());
 			inputStream =  new ObjectInputStream(echoSocket.getInputStream());
-			
-		} catch (UnknownHostException e) {
+			return true;
+			} catch (UnknownHostException e) {
 			System.err.println("Don't know about host: " + serverHostname);
 //			System.exit(1);
+			return false;
 		} catch (IOException e) {
 			System.err.println("Couldn't get I/O for "
 					+ "the connection to: " + serverHostname);
+			return false;
 //			System.exit(1);
 		}
 	}
@@ -170,6 +216,9 @@ public class BasicClient {
 				} catch (IOException e) {
 					System.out.println("Connexion lost");
 					stopThread();
+					connectedToServer = false;
+					notConnectedToServer();
+					
 				}
 			}
 		}
@@ -200,5 +249,13 @@ public class BasicClient {
 
 	public void setClientThreadListener(ThreadListener clientThreadListener) {
 		this.clientThreadListener = clientThreadListener;
+	}
+
+	public boolean isConnectedToServer() {
+		return connectedToServer;
+	}
+
+	public void setConnectedToServer(boolean connectedToServer) {
+		this.connectedToServer = connectedToServer;
 	}
 }
