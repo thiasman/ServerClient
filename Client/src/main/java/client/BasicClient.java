@@ -17,7 +17,7 @@ import message.LogonMessage;
 import message.MessageUsersList;
 
 /**
- * Connect to the server
+ * Connect to the server from a computer
  *
  */
 public class BasicClient {
@@ -110,11 +110,11 @@ public class BasicClient {
 			
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host: " + serverHostname);
-			System.exit(1);
+//			System.exit(1);
 		} catch (IOException e) {
 			System.err.println("Couldn't get I/O for "
 					+ "the connection to: " + serverHostname);
-			System.exit(1);
+//			System.exit(1);
 		}
 	}
 
