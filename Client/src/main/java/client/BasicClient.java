@@ -31,9 +31,9 @@ public class BasicClient {
 	ObjectInputStream inputStream =  null;
 	
 	private ThreadListener clientThreadListener = null;
+	private ThreadInputListener clientThreadInputListener = null;
 	
 	private String storedPassword;
-	private boolean connectedToServer = false;
 	
 	public BasicClient(String name, String pwd) {
 		System.out.println ("Attemping to connect to host " + serverHostname + " on port "+ serverPort + " .");
@@ -42,43 +42,15 @@ public class BasicClient {
 		
 		storedPassword = pwd;
 		
+		clientThreadInputListener = new ThreadInputListener();
+		clientThreadInputListener.start();
+		
 		if(initializeBuffer()){
-			connectedToServer = true;
 			connectToServer();
 		}
 		else{
-			connectedToServer = false;
-			notConnectedToServer();
+			System.out.println ("Press C to to try to connect to the server");
 		}
-	}
-
-	private void notConnectedToServer() {
-		String userInput = null;
-		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-		
-		System.out.println ("Press C to to try to connect to the server");
-		
-		try {
-			while ((userInput = stdIn.readLine()) != null)
-			{
-				switch(userInput){
-				case "C":
-					if(initializeBuffer()){
-						connectedToServer = true;
-						connectToServer();
-					}
-					else{
-						connectedToServer = false;
-						notConnectedToServer();
-					}
-					break;
-				}
-			}
-		}
-		 catch (IOException e) {
-			e.printStackTrace();
-		}
-		
 	}
 
 	private void connectToServer() {
@@ -89,42 +61,7 @@ public class BasicClient {
 		
 		System.out.println ("Hello "+ getUser().getName());
 
-		String userInput = null;
-		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-
 		DisplayMenu();
-		try {
-			while ((userInput = stdIn.readLine()) != null && connectedToServer) 
-			{
-				switch(userInput){
-					case "T":
-						AdminMessage time = new AdminMessage(Message.MessageTypes.TIME);
-						outputStream.writeObject(time);
-						break;
-					case "L":
-						MessageUsersList list = new MessageUsersList();
-						outputStream.writeObject(list);
-						break;
-					case "S":
-						System.out.println ("Write his username and press enter");
-						String username = stdIn.readLine();
-						System.out.println ("Write your message and press enter");
-						String mess = stdIn.readLine();
-						BasicMessage basicMessage = new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, mess, username, getUser().getName());
-						outputStream.writeObject(basicMessage);
-						break;
-					case "Q":
-						AdminMessage quit = new AdminMessage(Message.MessageTypes.QUIT);
-						outputStream.writeObject(quit);
-						logout();
-						clientThreadListener.stopThread();
-						break;
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
 	}
 
 	public void logon(String pwd){
@@ -215,10 +152,8 @@ public class BasicClient {
 					e.printStackTrace();
 				} catch (IOException e) {
 					System.out.println("Connexion lost");
+					System.out.println ("Press C to to try to connect to the server");
 					stopThread();
-					connectedToServer = false;
-					notConnectedToServer();
-					
 				}
 			}
 		}
@@ -228,6 +163,67 @@ public class BasicClient {
 		}
 	}
 
+	class ThreadInputListener extends Thread 
+	{
+		private boolean running = true;
+		//Create a thread which will just listen to the user input
+		public void run() 
+		{
+			String userInput = null;
+			BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+			
+			while(running){
+				try {
+					while ((userInput = stdIn.readLine()) != null ) 
+					{
+						switch(userInput){
+							case "T":
+								AdminMessage time = new AdminMessage(Message.MessageTypes.TIME);
+								outputStream.writeObject(time);
+								break;
+							case "L":
+								MessageUsersList list = new MessageUsersList();
+								outputStream.writeObject(list);
+								break;
+							case "S":
+								System.out.println ("Write his username and press enter");
+								String username = stdIn.readLine();
+								System.out.println ("Write your message and press enter");
+								String mess = stdIn.readLine();
+								BasicMessage basicMessage = new BasicMessage(Message.MessageTypes.BASIC_MESSAGE, mess, username, getUser().getName());
+								outputStream.writeObject(basicMessage);
+								break;
+							case "Q":
+								AdminMessage quit = new AdminMessage(Message.MessageTypes.QUIT);
+								outputStream.writeObject(quit);
+								logout();
+								clientThreadListener.stopThread();
+								break;
+							case "C":
+								if(initializeBuffer()){
+									connectToServer();
+								}
+								else{
+									System.out.println ("Press C to to try to connect to the server");
+								}
+								break;
+							default:
+								System.out.println ("Wrong input");
+								break;
+						}
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+		}
+		
+		public void stopThread(){
+			running=false;
+		}
+	}
+	
 	private void DisplayListUsers(Vector<String> clientsList) {
 		Iterator<String> i = clientsList.iterator();
 	    while (i.hasNext()) {
@@ -249,13 +245,5 @@ public class BasicClient {
 
 	public void setClientThreadListener(ThreadListener clientThreadListener) {
 		this.clientThreadListener = clientThreadListener;
-	}
-
-	public boolean isConnectedToServer() {
-		return connectedToServer;
-	}
-
-	public void setConnectedToServer(boolean connectedToServer) {
-		this.connectedToServer = connectedToServer;
 	}
 }
