@@ -64,8 +64,6 @@ public class MultiClientsServer {
 
 				ClientServiceThread cliThread = new ClientServiceThread(clientSocket);
 				cliThread.start();
-				clientsThreadList.add(cliThread);
-
 			} 
 			catch(IOException ioe) 
 			{ 
@@ -132,6 +130,24 @@ public class MultiClientsServer {
 		}
 	}
 
+	public static void addToList(ClientServiceThread cliThread) {
+		clientsThreadList.add(cliThread);
+	}
+	
+	public static boolean isUserConnected(String username){
+		
+		Iterator<ClientServiceThread> itr = clientsThreadList.iterator();
+		boolean isConnected = false;
+		//use hasNext() and next() methods of Iterator to iterate through the elements
+		while(itr.hasNext()){
+			ClientServiceThread tempClient = itr.next();
+			if(tempClient.getClientName().equals(username)){
+				isConnected=true;
+			}
+		}
+		return isConnected;
+	}
+	
 	public static boolean isServerOn(){
 		return serverOn;
 	}

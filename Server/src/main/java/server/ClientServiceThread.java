@@ -20,8 +20,8 @@ class ClientServiceThread extends Thread
 	boolean m_bRunThread = true; 
 
 	ObjectInputStream serverInputStream = null;
-    ObjectOutputStream serverOutputStream = null;
-	
+	ObjectOutputStream serverOutputStream = null;
+
 	private String clientName;
 
 	public ClientServiceThread() 
@@ -44,7 +44,7 @@ class ClientServiceThread extends Thread
 			e.printStackTrace();
 		}
 	}
-	
+
 	ClientServiceThread(Socket s) 
 	{ 
 		myClientSocket = s; 
@@ -59,7 +59,7 @@ class ClientServiceThread extends Thread
 		{                                
 			serverInputStream = new ObjectInputStream(myClientSocket.getInputStream());
 			serverOutputStream = new ObjectOutputStream(myClientSocket.getOutputStream());
-			
+
 			//Read the name which is sent automatically
 			//clientName = in.readLine(); 
 
@@ -69,7 +69,7 @@ class ClientServiceThread extends Thread
 			while(m_bRunThread) 
 			{                    
 				Message message = (Message) serverInputStream.readObject();
-				
+
 				if(!MultiClientsServer.isServerOn()) 
 				{ 
 					// Special command. Quit this thread 
@@ -82,12 +82,19 @@ class ClientServiceThread extends Thread
 				switch(message.getMessageType()){
 				case LOGON:
 					if(MultiClientsServer.getDbManager().isConnectedToDB()){
-						if(MultiClientsServer.getDbManager().checkPassword(((LogonMessage)message).getLogonUsername(), ((LogonMessage)message).getLogonPassword())){
-							clientName = ((LogonMessage)message).getLogonUsername();
-							System.out.println("Client " + clientName + " successfully connect to the server.");
-						}else{
+						if(!MultiClientsServer.isUserConnected(((LogonMessage)message).getLogonUsername())){
+							if(MultiClientsServer.getDbManager().checkPassword(((LogonMessage)message).getLogonUsername(), ((LogonMessage)message).getLogonPassword())){
+								clientName = ((LogonMessage)message).getLogonUsername();
+								MultiClientsServer.addToList(this);
+								System.out.println("Client " + clientName + " successfully connect to the server.");
+							}else{
+								m_bRunThread = false;
+								System.out.println("Wrong password or username");
+							}
+							}
+						else{
+							System.out.println("User already connected");
 							m_bRunThread = false;
-							System.out.println("Wrong password or username");
 						}
 					}
 					break;
