@@ -111,11 +111,14 @@ public class MultiClientsServer {
 			}
 		}
 
-		if(recipient != null){
-			recipient.sendMessageTo(message, senderUsername);
-		}else{
+		if(recipient == null){
 			sender.sendMessage("User not found");
 			System.out.println("User not found");
+		}else if(recipient.getClientName().equals(senderUsername)){
+			sender.sendMessage("You can't send a message to yourself you fool");
+			System.out.println("This user ("+senderUsername+") is stupid");
+		}else{
+			recipient.sendMessageTo(message, senderUsername);
 		} 
 	}
 
